@@ -53,7 +53,9 @@
           (divclass "topright" 
             (divclass "login"
               (if ,user
-                (link "logout" "/logout")
+                (w/bars
+                    (link ,user (userlink ,user))
+                    (link "logout" "/logout"))
                 (onlink "login" 
                   (login-page 'both nil (fn (u ip) (link "logged in" "/blog"))))))))
         (divclass "body" ,@body)
