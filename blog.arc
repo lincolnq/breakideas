@@ -5,44 +5,104 @@
 ; arc> (bsv)
 ; go to http://localhost:8080/blog
 
-(= postdir* "arc/posts/"  maxid* 0  posts* (table))
+(= postdir* "arc/posts/"  
+   maxid* 0  
+   posts* (table) 
+   userdir* "arc/users/"
+   user-profiles* (table))
 
 (= blogtitle* "Break Ideas")
 
-(deftem post  id nil  title nil  text nil)
+(deftem post  id nil  title nil  text nil  user nil)
+
+
+(deftem profile
+  name       nil
+  created    (seconds)
+  about      nil
+)
+
 
 (def load-posts ()
   (each id (map int (dir postdir*))
     (= maxid*      (max maxid* id)
        (posts* id) (temload 'post (string postdir* id)))))
 
+
+(def load-users ()
+  (each uid (dir userdir*)
+    (= (user-profiles* uid) (temload 'profile (string userdir* uid)))))
+
 (def save-post (p) (save-table p (string postdir* p!id)))
+(def save-user (profile) (save-table profile (string userdir* profile!id)))
 
 (def post (id) (posts* (errsafe:int id)))
+(def profile (uid) (user-profiles* uid))
 
-(mac blogpage body
-  `(whitepage 
-     (center
-       (widtable 600 
-         (tag b (link blogtitle* "blog"))
-         (br 3)
-         ,@body
-         (br 3)
-         (link "archive")))))
+(mac blogpage (userx . body)
+  (w/uniq user
+   `(let ,user ,userx
+     (tag html
+      (tag head
+        (tag (link  rel "stylesheet"  href "http://techhouse.org/~lincoln/a.css"  type "text/css"  media "screen")))
+      (tag body
+       (divclass "blogpage"
+        (divclass "top"
+          (divclass "topleft"
+            (tag h1 (link blogtitle* "blog")))
+          (divclass "topright" 
+            (divclass "login"
+              (if ,user
+                (link "logout" "/logout")
+                (onlink "login" 
+                  (login-page 'both nil (fn (u ip) (link "logged in" "/blog"))))))))
+        (divclass "body" ,@body)
+        (divclass "bottom" (w/bars
+            (link "idea archive" "/archive")
+            (link "site by lincolnq" "http://techhouse.org/~lincoln/")
+            (link "background by xbxg32000" "http://en.wikipedia.org/wiki/File:Newman_Library_2.jpg")))))))))
 
 (defop viewpost req (blogop post-page req))
 
 (def blogop (f req)
   (aif (post (arg req "id")) 
        (f (get-user req) it) 
-       (blogpage (pr "No such post."))))
+       (blogpage (get-user req) (pr "No such post."))))
 
 (def permalink (p) (string "viewpost?id=" p!id))
+(def userlink (username) (string "user?id=" username))
 
-(def post-page (user p) (blogpage (display-post user p)))
+(defop user req
+  (iflet target-uid (arg req "id")
+     (if (user-exists target-uid)
+         (user-page (get-user req) target-uid)
+         (blogpage (get-user req) (pr "No such user.")))))
+     
+
+(def post-page (user p) (blogpage user (display-post user p)))
+
+(def user-page (user target-user)
+  (let prof (or (profile target-user) (addprofile target-user))
+    (blogpage user
+      (tag b (pr target-user))
+      (br2)
+      (if (is user target-user)
+        (vars-form target-user 
+                   `((text about ,prof!about t t))
+                   (fn (name val) (= (prof name) val))
+                   (fn () (save-user prof)
+                          (user-page user target-user)))
+        ; else
+        (do
+          (pr "About:")
+          (br)
+          (pr (or prof!about "")))))))
 
 (def display-post (user p)
-  (tag b (link p!title (permalink p)))
+  (tag b (link p!title (permalink p))) 
+  (spanclass "byline"
+    (pr " by ")
+    (link p!user (userlink p!user)))
   (br2)
   (pr p!text))
 
@@ -55,9 +115,14 @@
            (row ""      (submit))))))
 
 (def addpost (user title text)
-  (let p (inst 'post 'id (++ maxid*) 'title title 'text text)
+  (let p (inst 'post 'id (++ maxid*) 'title title 'text text 'user user)
     (save-post p)
     (= (posts* p!id) p)))
+
+(def addprofile (userid)
+  (let u (inst 'profile 'id userid)
+    (save-user u)
+    (= (user-profiles* userid) u)))
 
 (defopl editpost req (blogop edit-page req))
 
@@ -70,14 +135,18 @@
                       (post-page user p)))))
 
 (defop archive req
-  (blogpage
+  (blogpage (get-user req)
     (tag ul
       (each p (map post (rev (range 1 maxid*)))
-        (tag li (link p!title (permalink p)))))))
+        (tag li 
+          (link p!title (permalink p))
+          (spanclass "byline"
+            (pr " by ")
+            (link p!user (userlink p!user))))))))
 
-(defop blog req
+(defop blog req 
   (let user (get-user req)
-    (blogpage
+    (blogpage user
       (tag (font size 5) (pr "Stop what you're doing."))
       (br 2)
       (pr "Take an eight minute break. Just generate ideas.")
@@ -116,6 +185,10 @@ function cd() {
     }
 }
 </script>"))
+
+(defop "a.css" req
+  (pr "
+"))
 
 (def bsv ()
   (ensure-dir postdir*)

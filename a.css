@@ -1,0 +1,52 @@
+/* colors & text styles */
+body {
+  background:url('http://upload.wikimedia.org/wikipedia/en/c/c6/Newman_Library_2.jpg') #300 no-repeat center top;
+}
+
+div.blogpage {
+  background: #fff;
+}
+
+.byline {
+  font-size: smaller;
+}
+
+/* margins */
+div.blogpage {
+  padding: 1em;
+}
+
+div.bottom {
+  margin-top: 2em;
+  font-size: small;
+}
+
+div.login {
+  margin-top: 2em;
+}
+
+/* positioning */
+div.blogpage {
+  position: absolute;
+  width: 800px;
+  left: 50%;
+  margin-left: -400px;
+}
+
+div.top { 
+  position: relative; 
+  height: 5em;
+  border-bottom: 1px dotted #aaa;
+}
+
+div.topleft {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+div.topright {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
