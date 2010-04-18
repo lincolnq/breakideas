@@ -7,7 +7,7 @@
 
 (= postdir* "arc/posts/"  maxid* 0  posts* (table))
 
-(= blogtitle* "A Blog")
+(= blogtitle* "Break Ideas")
 
 (deftem post  id nil  title nil  text nil)
 
@@ -28,8 +28,7 @@
          (br 3)
          ,@body
          (br 3)
-         (w/bars (link "archive")
-                 (link "new post" "newpost"))))))
+         (link "archive")))))
 
 (defop viewpost req (blogop post-page req))
 
@@ -44,9 +43,6 @@
 
 (def display-post (user p)
   (tag b (link p!title (permalink p)))
-  (when user
-    (sp)
-    (link "[edit]" (string "editpost?id=" p!id)))
   (br2)
   (pr p!text))
 
@@ -82,10 +78,44 @@
 (defop blog req
   (let user (get-user req)
     (blogpage
-      (for i 0 4
-        (awhen (posts* (- maxid* i)) 
+      (tag (font size 5) (pr "Stop what you're doing."))
+      (br 2)
+      (pr "Take an eight minute break. Just generate ideas.")
+      (br 2)
+      (tag (font size 2) (pr "(You probably need a wrist break anyway. Push your chair away from your computer. Come on, eight minutes won't kill you! You might even think of something nobody's thought of before.)"))
+      (br 3)
+      (pr "Here's your inspiration:")
+      (br 3)
+      (with (c 2 i maxid*)
+       (while (and (> i 0)
+                   (> i (- maxid* 100))
+                   (> c 0))
+        (= i (- i 1))
+        (aif (or (< i c) (< (rand) 0.1))
+         (awhen (posts* (- maxid* i))
           (display-post user it)
-          (br 3))))))
+          (= c (- c 1))
+          (br 3)))))
+      (br 3)
+      (pr "Go away for ")
+      (js-timer (* 60 8))
+      (pr "!")
+      (br 2)
+      (link "Back already? Now share your ideas!" "newpost"))))
+
+(def js-timer (secs)
+    (tag (span id "thetime") (pr "a few minutes"))
+    (pr "<script type='text/javascript'>
+var remain = " secs ";
+var timeoutid = setInterval(cd, 1000);
+function cd() {
+    remain -= 1;
+    document.getElementById('thetime').innerHTML = Math.floor(remain / 60) + ':' + (remain % 60);
+    if(!remain) {
+        clearTimeout(timeoutid);
+    }
+}
+</script>"))
 
 (def bsv ()
   (ensure-dir postdir*)
