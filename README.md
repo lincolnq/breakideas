@@ -26,6 +26,9 @@ and post something valuable and expect anyone to respect your intellectual
 property rights.  Don't write anything that you don't want other people to see,
 because it's all made public. 
 
+**How to run?** Checkout the repo and read the instructions at the top of
+blog.arc.
+
 **Future Features:** user pages, fix random post selection algo
 
 **Thoughts on Arc after about 6 hours using it:** 
