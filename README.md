@@ -29,7 +29,9 @@ because it's all made public.
 **How to run?** Checkout the repo and read the instructions at the top of
 blog.arc.
 
-**Future Features:** user pages, fix random post selection algo
+**Bugs**: When you restart the server it doesn't load profiles from disk
+correctly. Security is probably a nightmare (which is why it's not linked
+here).
 
 **Thoughts on Arc after about 6 hours using it:** 
 
